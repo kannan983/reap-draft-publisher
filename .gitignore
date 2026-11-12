@@ -29,3 +29,6 @@ bin/
 obj/
 publish/
 *.pdb
+
+# local demo mode (simulated YouTube), never pushed
+demo/
