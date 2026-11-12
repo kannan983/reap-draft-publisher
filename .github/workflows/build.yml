@@ -1,0 +1,50 @@
+name: Build Windows exe
+
+# Builds ONE target only: Windows x64 (win-x64), single self-contained exe.
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Self-test
+        run: dotnet run --project CoursePublisher -c Release -- --selftest
+
+      - name: Publish win-x64
+        run: dotnet publish CoursePublisher -c Release -r win-x64 -o publish
+
+      - name: Show exe and SHA256
+        shell: pwsh
+        run: |
+          Get-Item publish/REAP_Course_Publisher.exe | Format-List Name, Length
+          (Get-FileHash publish/REAP_Course_Publisher.exe -Algorithm SHA256).Hash
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: REAP_Course_Publisher-win-x64
+          path: publish/REAP_Course_Publisher.exe
+
+      - name: Publish GitHub release (tags only)
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $hash = (Get-FileHash publish/REAP_Course_Publisher.exe -Algorithm SHA256).Hash
+          Copy-Item .github/release-notes.md notes.md
+          Add-Content notes.md "`n**SHA256** ``REAP_Course_Publisher.exe``: ``$hash``"
+          gh release create "${{ github.ref_name }}" publish/REAP_Course_Publisher.exe --title "REAP Course Publisher ${{ github.ref_name }}" --notes-file notes.md
