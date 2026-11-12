@@ -59,6 +59,8 @@ Eye icon **Text size** (100% to 200%, Ctrl +/-/0) and **Theme** (System / Light 
 
 ## Developer guide
 
+AI assistants (Claude Code etc.): read [CONTEXT.md](CONTEXT.md) first (`CLAUDE.md` imports it).
+
 C# / .NET 10, Avalonia 11, `Google.Apis.YouTube.v3`. Built from the same base as REAP YouTube Manager.
 
 ```
